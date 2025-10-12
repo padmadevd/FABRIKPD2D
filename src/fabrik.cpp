@@ -7,28 +7,28 @@
 #include <map>
 #include <vector>
 
-Fabrik::Bone::Bone()
+FabrikPD2D::Bone::Bone()
     : mID(0), mLength(0), mTheta(0), mMinTheta(-180), mMaxTheta(180), mPrev(0), mNext(0)
 {
 }
 
-Fabrik::Bone::Bone(uint32_t id, float length, float theta, float minTheta, float maxTheta)
+FabrikPD2D::Bone::Bone(uint32_t id, float length, float theta, float minTheta, float maxTheta)
     : mID(id), mLength(0), mTheta(), mMinTheta(minTheta), mMaxTheta(maxTheta),mPrev(0), mNext(0)
 {
 }
 
-Fabrik::Bone::Bone(uint32_t id, float length, float theta, float minTheta, float maxTheta, uint32_t prev)
+FabrikPD2D::Bone::Bone(uint32_t id, float length, float theta, float minTheta, float maxTheta, uint32_t prev)
     : mID(id), mLength(length), mTheta(theta), mMinTheta(minTheta), mMaxTheta(maxTheta), mPrev(prev), mNext(0)
 {
 }
 
-Fabrik::Fabrik()
+FabrikPD2D::FabrikPD2D()
     : mBones(), mBasePosition{0, 0}, mBaseTheta(0), mIterationLimit(20), mIterationThreshold(0.1f), mThreshold(1.f)
 {
     mBones.push_back(Bone());
 }
 
-uint32_t Fabrik::AddRoot(Vector2 start, Vector2 end)
+uint32_t FabrikPD2D::AddRoot(Vector2 start, Vector2 end)
 {
     if(mBones.size() > 1)
     {
@@ -45,7 +45,7 @@ uint32_t Fabrik::AddRoot(Vector2 start, Vector2 end)
     return bone.mID;
 }
 
-uint32_t Fabrik::AddBone(Vector2 end)
+uint32_t FabrikPD2D::AddBone(Vector2 end)
 {
     if(mBones.size() <= 1)
     {
@@ -68,7 +68,7 @@ uint32_t Fabrik::AddBone(Vector2 end)
     return bone.mID;
 }
 
-uint32_t Fabrik::GetPrevBone(uint32_t bone)
+uint32_t FabrikPD2D::GetPrevBone(uint32_t bone)
 {
     if(bone < 1 || bone >= mBones.size())
     {
@@ -76,7 +76,7 @@ uint32_t Fabrik::GetPrevBone(uint32_t bone)
     }
     return mBones[bone].mPrev;
 }
-uint32_t Fabrik::GetNextBone(uint32_t bone)
+uint32_t FabrikPD2D::GetNextBone(uint32_t bone)
 {
     if(bone < 1 || bone >= mBones.size())
     {
@@ -84,7 +84,7 @@ uint32_t Fabrik::GetNextBone(uint32_t bone)
     }
     return mBones[bone].mNext;
 }
-uint32_t Fabrik::GetRoot()
+uint32_t FabrikPD2D::GetRoot()
 {
     if(mBones.size() == 0)
     {
@@ -93,25 +93,25 @@ uint32_t Fabrik::GetRoot()
     return 1;
 }
 
-Vector2 Fabrik::GetBasePosition()
+Vector2 FabrikPD2D::GetBasePosition()
 {
     return mBasePosition;
 }
-void Fabrik::SetBasePosition(Vector2 position)
+void FabrikPD2D::SetBasePosition(Vector2 position)
 {
     mBasePosition = position;
 }
 
-float Fabrik::GetBaseTheta()
+float FabrikPD2D::GetBaseTheta()
 {
     return mBaseTheta;
 }
-void Fabrik::SetBaseTheta(float theta)
+void FabrikPD2D::SetBaseTheta(float theta)
 {
     mBaseTheta = theta;
 }
 
-float Fabrik::GetTheta(uint32_t bone)
+float FabrikPD2D::GetTheta(uint32_t bone)
 {
     if(bone < 1 || bone >= mBones.size())
     {
@@ -119,7 +119,7 @@ float Fabrik::GetTheta(uint32_t bone)
     }
     return mBones[bone].mTheta;
 }
-void Fabrik::SetTheta(uint32_t bone, float theta)
+void FabrikPD2D::SetTheta(uint32_t bone, float theta)
 {
     if(bone < 1 || bone >= mBones.size())
     {
@@ -136,7 +136,7 @@ void Fabrik::SetTheta(uint32_t bone, float theta)
     mBones[bone].mTheta = theta;
 }
 
-float Fabrik::GetLength(uint32_t bone)
+float FabrikPD2D::GetLength(uint32_t bone)
 {
     if(bone < 1 || bone >= mBones.size())
     {
@@ -144,7 +144,7 @@ float Fabrik::GetLength(uint32_t bone)
     }
     return mBones[bone].mLength;
 }
-void Fabrik::SetLength(uint32_t bone, float length)
+void FabrikPD2D::SetLength(uint32_t bone, float length)
 {
     if(bone < 1 || bone >= mBones.size())
     {
@@ -153,7 +153,7 @@ void Fabrik::SetLength(uint32_t bone, float length)
     mBones[bone].mLength = length;
 }
 
-Vector2 Fabrik::GetBoneStart(uint32_t bone)
+Vector2 FabrikPD2D::GetBoneStart(uint32_t bone)
 {
     if(bone < 1 || bone >= mBones.size())
     {
@@ -175,7 +175,7 @@ Vector2 Fabrik::GetBoneStart(uint32_t bone)
     return position;
 }
 
-Vector2 Fabrik::GetBoneEnd(uint32_t bone)
+Vector2 FabrikPD2D::GetBoneEnd(uint32_t bone)
 {
     if(bone < 1 || bone >= mBones.size())
     {
@@ -195,7 +195,7 @@ Vector2 Fabrik::GetBoneEnd(uint32_t bone)
     return position;
 }
 
-float Fabrik::GetThetaGlobal(uint32_t bone)
+float FabrikPD2D::GetThetaGlobal(uint32_t bone)
 {
     if(bone < 1 || bone >= mBones.size())
     {
@@ -212,7 +212,7 @@ float Fabrik::GetThetaGlobal(uint32_t bone)
     return theta;
 }
 
-void Fabrik::SetMinTheta(uint32_t bone, float theta)
+void FabrikPD2D::SetMinTheta(uint32_t bone, float theta)
 {
     if(bone < 1 || bone >= mBones.size())
     {
@@ -224,7 +224,7 @@ void Fabrik::SetMinTheta(uint32_t bone, float theta)
     }
     mBones[bone].mMinTheta = theta;
 }
-float Fabrik::GetMinTheta(uint32_t bone)
+float FabrikPD2D::GetMinTheta(uint32_t bone)
 {
     if(bone < 1 || bone >= mBones.size())
     {
@@ -233,7 +233,7 @@ float Fabrik::GetMinTheta(uint32_t bone)
     return mBones[bone].mMinTheta;
 }
 
-void Fabrik::SetMaxTheta(uint32_t bone, float theta)
+void FabrikPD2D::SetMaxTheta(uint32_t bone, float theta)
 {
     if(bone < 1 || bone >= mBones.size())
     {
@@ -245,7 +245,7 @@ void Fabrik::SetMaxTheta(uint32_t bone, float theta)
     }
     mBones[bone].mMaxTheta = theta;
 }
-float Fabrik::GetMaxTheta(uint32_t bone)
+float FabrikPD2D::GetMaxTheta(uint32_t bone)
 {
     if(bone < 1 || bone >= mBones.size())
     {
@@ -254,34 +254,34 @@ float Fabrik::GetMaxTheta(uint32_t bone)
     return mBones[bone].mMaxTheta;
 }
 
-void Fabrik::SetIterationLimit(uint32_t limit)
+void FabrikPD2D::SetIterationLimit(uint32_t limit)
 {
     mIterationLimit = limit;
 }
-uint32_t Fabrik::GetIterationLimit()
+uint32_t FabrikPD2D::GetIterationLimit()
 {
     return mIterationLimit;
 }
 
-void Fabrik::SetIterationThreshold(float threshold)
+void FabrikPD2D::SetIterationThreshold(float threshold)
 {
     mIterationThreshold = threshold;
 }
-float Fabrik::GetIterationThreshold()
+float FabrikPD2D::GetIterationThreshold()
 {
     return mIterationThreshold;
 }
 
-void Fabrik::SetThreshold(float threshold)
+void FabrikPD2D::SetThreshold(float threshold)
 {
     mThreshold = threshold;
 }
-float Fabrik::GetThreshold()
+float FabrikPD2D::GetThreshold()
 {
     return mThreshold;
 }
 
-void Fabrik::Solve(std::vector<uint32_t> effectors, std::vector<Vector2> targets, std::vector<bool> fixed)
+void FabrikPD2D::Solve(std::vector<uint32_t> effectors, std::vector<Vector2> targets, std::vector<bool> fixed)
 {
     if(mBones.size() <= 2)
     {
@@ -316,7 +316,7 @@ void Fabrik::Solve(std::vector<uint32_t> effectors, std::vector<Vector2> targets
     }
 }
 
-void Fabrik::SolveSingleEnd(uint32_t base, uint32_t effector, Vector2 target)
+void FabrikPD2D::SolveSingleEnd(uint32_t base, uint32_t effector, Vector2 target)
 {
     uint32_t numberOfNodes = effector-base+1;
     Vector2 baseStart = GetBoneStart(base);

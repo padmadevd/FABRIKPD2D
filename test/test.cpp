@@ -10,7 +10,7 @@ int main()
     InitWindow(1800, 800, "FABRIK");
     InitAudioDevice();
 
-    Fabrik fabrik;
+    FabrikPD2D fabrik;
 
     Camera2D cam = {0};
     cam.offset = {900, 400};

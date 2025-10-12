@@ -7,7 +7,7 @@
 #include <raylib/raylib.h>
 #include <raylib/raymath.h>
 
-class Fabrik
+class FabrikPD2D
 {
     private:
 
@@ -30,12 +30,12 @@ class Fabrik
         uint32_t mPrev;
         uint32_t mNext;
 
-        friend class Fabrik;
+        friend class FabrikPD2D;
     };
 
     public:
 
-    Fabrik();
+    FabrikPD2D();
 
     uint32_t AddRoot(Vector2 start, Vector2 end);
     uint32_t AddBone(Vector2 end);
