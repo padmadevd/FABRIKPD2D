@@ -3,8 +3,8 @@
 
 #include <cstdint>
 #include <vector>
-#include <map>
 
+#include <raylib/raylib.h>
 #include <raylib/raymath.h>
 
 class Fabrik
@@ -14,20 +14,21 @@ class Fabrik
     class Bone
     {
         private:
+
         Bone();
-        Bone(uint32_t id, Vector2 start, Vector2 end, float minTheta, float maxTheta);
-        Bone(uint32_t id, Vector2 start, Vector2 end, float minTheta, float maxTheta, uint32_t parent);
+        Bone(uint32_t id, float length, float theta, float minTheta, float maxTheta);
+        Bone(uint32_t id, float length, float theta, float minTheta, float maxTheta, uint32_t prev);
 
         uint32_t mID;
 
-        Vector2 mStart;
-        Vector2 mEnd;
+        float mLength;
+        float mTheta;
 
         float mMinTheta;
         float mMaxTheta;
 
-        uint32_t mParent;
-        std::vector<uint32_t> mChildren;
+        uint32_t mPrev;
+        uint32_t mNext;
 
         friend class Fabrik;
     };
@@ -37,43 +38,56 @@ class Fabrik
     Fabrik();
 
     uint32_t AddRoot(Vector2 start, Vector2 end);
-    uint32_t AddBone(uint32_t parent, Vector2 end, float minTheta, float maxTheta);
+    uint32_t AddBone(Vector2 end);
 
-    // void SetBoneStart(uint32_t bone, Vector2 start);
-    // Vector2 GetBoneStart(uint32_t bone);
-
-    // void SetBoneEnd(uint32_t bone, Vector2 end);
-    // Vector2 GetBoneEnd(uint32_t bone);
-
-    // void SetMinTheta(uint32_t bone, float degree);
-    // float GetMinTheta(uint32_t bone);
-
-    // void SetMaxTheta(uint32_t bone, float degree);
-    // float GetMaxTheta(uint32_t bone);
-
-    std::vector<uint32_t> GetChildren(uint32_t bone);
+    uint32_t GetPrevBone(uint32_t bone);
+    uint32_t GetNextBone(uint32_t bone);
     uint32_t GetRoot();
+
+    Vector2 GetBasePosition();
+    void SetBasePosition(Vector2 position);
+
+    float GetBaseTheta();
+    void SetBaseTheta(float theta);
+
+    float GetTheta(uint32_t bone);
+    void SetTheta(uint32_t bone, float theta);
+
+    float GetLength(uint32_t bone);
+    void SetLength(uint32_t bone, float length);
+
+    Vector2 GetBoneStart(uint32_t bone);
+    Vector2 GetBoneEnd(uint32_t bone);
+
+    float GetThetaGlobal(uint32_t bone);
+
+    void SetMinTheta(uint32_t bone, float theta);
+    float GetMinTheta(uint32_t bone);
+
+    void SetMaxTheta(uint32_t bone, float theta);
+    float GetMaxTheta(uint32_t bone);
 
     void SetIterationLimit(uint32_t limit);
     uint32_t GetIterationLimit();
 
+    void SetIterationThreshold(float threshold);
+    float GetIterationThreshold();
+
     void SetThreshold(float threshold);
     float GetThreshold();
 
-    void Solve(std::vector<uint32_t> effectors, std::vector<Vector2> positions);
+    void Solve(std::vector<uint32_t> effectors, std::vector<Vector2> targets, std::vector<bool> fixed);
 
     private:
 
-    std::vector<uint32_t> GetDescendants(uint32_t bone, std::map<uint32_t, Vector2> &mp);
-    void SolveMultiEnd(uint32_t root, std::vector<uint32_t> effectors, std::vector<Vector2> positions);
-    void SolveSingleEnd(uint32_t root, uint32_t effector, Vector2 position);
+    void SolveSingleEnd(uint32_t base, uint32_t effector, Vector2 target);
 
-    std::vector<Bone*> mBones;
-    uint32_t mCounter;
-
-    uint32_t mRoot;
+    std::vector<Bone> mBones;
+    Vector2 mBasePosition;
+    float mBaseTheta;
 
     uint32_t mIterationLimit;
+    float mIterationThreshold;
     float mThreshold;
 };
 
