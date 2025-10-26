@@ -1,5 +1,6 @@
 #include <cstdint>
 
+#include <cstdio>
 #include <raylib/raylib.h>
 #include <raylib/raymath.h>
 
@@ -16,27 +17,30 @@ int main()
     cam.offset = {900, 400};
     cam.zoom = 1;
 
-    fabrik.AddRoot({0, 0}, {90, 0});
+    uint32_t root = fabrik.AddRoot({0, 0}, {90, 0});
     uint32_t effector1 = fabrik.AddBone({180, 0});
     uint32_t effector2 = fabrik.AddBone({200, 0});
 
-    fabrik.SetMinTheta(effector1, -180);
-    fabrik.SetMaxTheta(effector1, 0);
+    fabrik.SetBaseTheta(90);
 
-    fabrik.SetMinTheta(effector2, -45);
-    fabrik.SetMaxTheta(effector2, 45);
+    // fabrik.SetMinTheta(root, -45);
+    // fabrik.SetMaxTheta(root, 45);
+
+    // fabrik.SetMinTheta(root, -45);
+    // fabrik.SetMaxTheta(root, 45);
 
     fabrik.SetThreshold(2);
     fabrik.SetIterationLimit(20);
     fabrik.SetIterationThreshold(0.1);
 
     Vector2 target1;
-    Vector2 target2 = {-200, 0};
 
     float dir = 1;
 
     float lastTime = GetTime();
     float deltaTime = 0;
+
+    uint32_t effector = effector1;
 
     while(!WindowShouldClose())
     {
@@ -50,31 +54,27 @@ int main()
 
         PollInputEvents();
 
+        if(IsKeyPressed(KEY_SPACE))
+        {
+            if(effector == effector1)
+            {
+                effector = effector2;
+            }
+            else
+            {
+                effector = effector1;
+            }
+        }
+
         Vector2 mousePos = GetMousePosition();
         mousePos = GetScreenToWorld2D(mousePos, cam);
-
-        target2.x += dir*50*deltaTime;
-        if(target2.x > 200)
-        {
-            target2.x = 200;
-            dir = -1;
-        }
-        if(target2.x < -200)
-        {
-            target2.x = -200;
-            dir = 1;
-        }
 
         if(IsMouseButtonDown(MOUSE_BUTTON_LEFT))
         {
             target1 = mousePos;
-            fabrik.Solve({effector1, effector2}, {target1, target2}, {false, false});
+            fabrik.Solve({effector}, {target1}, {false});
         }
-        else
-        {
-            fabrik.Solve({effector2}, {target2}, {false});
-        }
-
+        
         ClearBackground(BLACK);
         BeginMode2D(cam);
 
@@ -88,6 +88,9 @@ int main()
 
             thetaGlobal += theta;
             DrawRectanglePro({start.x, start.y, length, 5}, {0, 2.5f}, thetaGlobal, {255, 255, 255, 100});
+
+            // printf("%u %f\n",curr, theta);
+            // fflush(stdout);
 
             start += Vector2Rotate(Vector2{1, 0}, DEG2RAD*thetaGlobal)*length;
             curr = fabrik.GetNextBone(curr);

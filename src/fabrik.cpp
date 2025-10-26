@@ -4,6 +4,7 @@
 #include "raylib/raymath.h"
 
 #include <cstdint>
+#include <cstdio>
 #include <map>
 #include <vector>
 
@@ -218,6 +219,14 @@ void FabrikPD2D::SetMinTheta(uint32_t bone, float theta)
     {
         return;
     }
+    if(theta < -360)
+    {
+        theta = -360;
+    }
+    else if(theta > 360)
+    {
+        theta = 360;
+    }
     if(mBones[bone].mTheta < theta)
     {
         mBones[bone].mTheta = theta;
@@ -238,6 +247,14 @@ void FabrikPD2D::SetMaxTheta(uint32_t bone, float theta)
     if(bone < 1 || bone >= mBones.size())
     {
         return;
+    }
+    if(theta < -360)
+    {
+        theta = -360;
+    }
+    else if(theta > 360)
+    {
+        theta = 360;
     }
     if(mBones[bone].mTheta > theta)
     {
@@ -295,13 +312,9 @@ void FabrikPD2D::Solve(std::vector<uint32_t> effectors, std::vector<Vector2> tar
         mpTarget[effectors[i]] = targets[i];
         mpFixed[effectors[i]] = fixed[i];
     }
-    if(mpTarget.find(1) != mpTarget.end())
-    {
-        mBasePosition = mpTarget[1];
-    }
 
     uint32_t base = 1;
-    uint32_t curr = 2;
+    uint32_t curr = 1;
     while(curr < mBones.size())
     {
         if(mpTarget.find(curr) != mpTarget.end())
@@ -355,7 +368,7 @@ void FabrikPD2D::SolveSingleEnd(uint32_t base, uint32_t effector, Vector2 target
         positions[i] = target;
         --curr;
         --i;
-        while(i >= 0)
+        while(i >= 0 && i+1 < numberOfNodes)
         {
             float r = Vector2Distance(positions[i], positions[i+1]);
             float lambda = lengths[i]/r;
@@ -367,16 +380,38 @@ void FabrikPD2D::SolveSingleEnd(uint32_t base, uint32_t effector, Vector2 target
                 Vector2 b = positions[i+2]-positions[i+1];
                 float theta = RAD2DEG*Vector2Angle(a, b);
 
-                if(theta < mBones[curr].mMinTheta)
+                float minTheta = mBones[curr].mMinTheta;
+                while(minTheta < 0)
                 {
-                    positions[i] = positions[i+1]+Vector2Rotate(Vector2Normalize(Vector2Invert(b)), -mBones[curr].mMinTheta)*lengths[i];
+                    minTheta += 360;
                 }
-                else if(theta > mBones[curr].mMaxTheta)
+                float maxTheta = mBones[curr].mMaxTheta;
+                while(maxTheta <= minTheta)
                 {
-                    positions[i] = positions[i+1]+Vector2Rotate(Vector2Normalize(Vector2Invert(b)), -mBones[curr].mMaxTheta)*lengths[i];
+                    maxTheta += 360;
+                }
+                while(theta < minTheta)
+                {
+                    theta += 360;
+                }
+
+                if(theta > maxTheta)
+                {
+                    float currentTheta = mBones[curr].mTheta;
+                    while(currentTheta < minTheta && currentTheta+360 <= maxTheta)
+                    {
+                        currentTheta += 360;
+                    }
+                    if(abs(currentTheta-minTheta) < maxTheta-currentTheta)
+                    {
+                        positions[i] = positions[i+1]+Vector2Rotate(Vector2Normalize(Vector2Invert(b)), DEG2RAD*-mBones[curr].mMinTheta)*lengths[i];
+                    }
+                    else
+                    {
+                        positions[i] = positions[i+1]+Vector2Rotate(Vector2Normalize(Vector2Invert(b)), DEG2RAD*-mBones[curr].mMaxTheta)*lengths[i];
+                    }
                 }
             }
-
             --curr;
             --i;
         }
@@ -391,19 +426,51 @@ void FabrikPD2D::SolveSingleEnd(uint32_t base, uint32_t effector, Vector2 target
             float lambda = lengths[i]/r;
             positions[i+1] = positions[i]*(1-lambda) + positions[i+1]*(lambda);
 
-            if(i > 0)
+            Vector2 a;
+            Vector2 b;
+            float theta;
+            if(i == 0)
             {
-                Vector2 a = positions[i]-positions[i-1];
-                Vector2 b = positions[i+1]-positions[i];
-                float theta = RAD2DEG*Vector2Angle(a, b);
+                a = Vector2Rotate(Vector2{1, 0}, DEG2RAD*GetThetaGlobal(curr-1));
+                b = positions[i+1]-positions[i];
+                theta = RAD2DEG*Vector2Angle(a, b);
+            }
+            else if(i > 0)
+            {
+                a = positions[i]-positions[i-1];
+                b = positions[i+1]-positions[i];
+                theta = RAD2DEG*Vector2Angle(a, b);
+            }
 
-                if(theta < mBones[curr].mMinTheta)
+            float minTheta = mBones[curr].mMinTheta;
+            while(minTheta < 0)
+            {
+                minTheta += 360;
+            }
+            float maxTheta = mBones[curr].mMaxTheta;
+            while(maxTheta <= minTheta)
+            {
+                maxTheta += 360;
+            }
+            while(theta < minTheta)
+            {
+                theta += 360;
+            }
+
+            if(theta > maxTheta)
+            {
+                float currentTheta = mBones[curr].mTheta;
+                while(currentTheta < minTheta && currentTheta+360 <= maxTheta)
                 {
-                    positions[i+1] = positions[i]+Vector2Rotate(Vector2Normalize(a), mBones[curr].mMinTheta)*lengths[i];
+                    currentTheta += 360;
                 }
-                else if(theta > mBones[curr].mMaxTheta)
+                if(abs(currentTheta-minTheta) < maxTheta-currentTheta)
                 {
-                    positions[i+1] = positions[i]+Vector2Rotate(Vector2Normalize(a), mBones[curr].mMaxTheta)*lengths[i];
+                    positions[i+1] = positions[i]+Vector2Rotate(Vector2Normalize(a), DEG2RAD*mBones[curr].mMinTheta)*lengths[i];
+                }
+                else
+                {
+                    positions[i+1] = positions[i]+Vector2Rotate(Vector2Normalize(a), DEG2RAD*mBones[curr].mMaxTheta)*lengths[i];
                 }
             }
 
@@ -412,6 +479,10 @@ void FabrikPD2D::SolveSingleEnd(uint32_t base, uint32_t effector, Vector2 target
         }
 
         ++iterations;
+    }
+    if(effector == 1)
+    {
+        positions[0] = target;
     }
 
     // FOR REMAINING NODES AFTER EFFECTOR
@@ -446,9 +517,13 @@ void FabrikPD2D::SolveSingleEnd(uint32_t base, uint32_t effector, Vector2 target
             float lambda = lengthsRemain[i]/r;
             positionsRemain[i+1] = positionsRemain[i]*(1-lambda) + positionsRemain[i+1]*(lambda);
 
-            if(curr > 1)
+            Vector2 a;
+            if(curr == 1)
             {
-                Vector2 a;
+                a = Vector2Rotate(Vector2{1, 0}, DEG2RAD*GetThetaGlobal(curr-1));
+            }
+            else if(curr > 1)
+            {
                 if(i > 0)
                 {
                     a = positionsRemain[i]-positionsRemain[i-1];
@@ -461,16 +536,39 @@ void FabrikPD2D::SolveSingleEnd(uint32_t base, uint32_t effector, Vector2 target
                 {
                     a = positionsRemain[i]-GetBoneStart(curr-1);
                 }
-                Vector2 b = positionsRemain[i+1]-positionsRemain[i];
-                float theta = RAD2DEG*Vector2Angle(a, b);
+            }
+            Vector2 b = positionsRemain[i+1]-positionsRemain[i];
+            float theta = RAD2DEG*Vector2Angle(a, b);
 
-                if(theta < mBones[curr].mMinTheta)
+            float minTheta = mBones[curr].mMinTheta;
+            while(minTheta < 0)
+            {
+                minTheta += 360;
+            }
+            float maxTheta = mBones[curr].mMaxTheta;
+            while(maxTheta <= minTheta)
+            {
+                maxTheta += 360;
+            }
+            while(theta < minTheta)
+            {
+                theta += 360;
+            }
+
+            if(theta > maxTheta)
+            {
+                float currentTheta = mBones[curr].mTheta;
+                while(currentTheta < minTheta && currentTheta+360 <= maxTheta)
                 {
-                    positionsRemain[i+1] = positionsRemain[i]+Vector2Rotate(Vector2Normalize(a), mBones[curr].mMinTheta)*lengthsRemain[i];
+                    currentTheta += 360;
                 }
-                else if(theta > mBones[curr].mMaxTheta)
+                if(abs(currentTheta-minTheta) < maxTheta-currentTheta)
                 {
-                    positionsRemain[i+1] = positionsRemain[i]+Vector2Rotate(Vector2Normalize(a), mBones[curr].mMaxTheta)*lengthsRemain[i];
+                    positionsRemain[i+1] = positionsRemain[i]+Vector2Rotate(Vector2Normalize(a), DEG2RAD*mBones[curr].mMinTheta)*lengthsRemain[i];
+                }
+                else
+                {
+                    positionsRemain[i+1] = positionsRemain[i]+Vector2Rotate(Vector2Normalize(a), DEG2RAD*mBones[curr].mMaxTheta)*lengthsRemain[i];
                 }
             }
 
@@ -502,7 +600,7 @@ void FabrikPD2D::SolveSingleEnd(uint32_t base, uint32_t effector, Vector2 target
 
     {
         // FOR REMAINING NODES
-        Vector2 start = GetBoneStart(effector);
+        Vector2 start = positionsRemain[0];
         float thetaGlobal = GetThetaGlobal(effector-1);
 
         uint32_t curr = effector;
@@ -519,5 +617,10 @@ void FabrikPD2D::SolveSingleEnd(uint32_t base, uint32_t effector, Vector2 target
             ++curr;
             ++i;
         }
+    }
+
+    if(effector == 1)
+    {
+        mBasePosition = target;
     }
 }
